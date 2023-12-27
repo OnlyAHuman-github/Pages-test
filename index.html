@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>replit</title>
+  <link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <input type="file" id="input" accept="audio/*"><br>
+  <button id="play">Play</button>
+  <div>
+    Pitch (+10 per note):
+    <span id="rate"></span>
+  </div>
+  <script>
+let currentAudio;
+let source;
+let inter;
+let text = ["Play", "Stop"];
+
+function $(e) {
+  return document.getElementById(e);
+}
+
+function playAudio(audio) {
+  // audio is an array buffer
+  let context = new AudioContext();
+  audio = context.decodeAudioData(audio)
+    .then(audio => {
+      source = context.createBufferSource();
+      source.buffer = audio;
+      source.connect(context.destination);
+      source.start(0);
+
+      const rateChange = 2 ** (1 / 120);    // 120 steps in an octave for Scratch
+      let rate = 0;
+      let up = true;
+      inter = setInterval(() => {
+        /*rate += (Math.random() * 10 - 5);
+        if (rate > 50) {
+          rate -= 2 * (rate - 50);
+        } else if (rate < -50) {
+          rate -= 2 * (rate + 50);
+        }*/
+        rate += (Math.random() * 2.5 + 0.5) * (-1) ** (up - 1);
+        if (rate > 50) {
+          rate -= 2 * (rate - 50);
+          up = !up;
+        } else if (rate < -50) {
+          rate -= 2 * (rate + 50);
+          up = !up;
+        }
+        if (Math.random() > 0.99) up = !up;
+        
+        $("rate").innerHTML = Math.round(rate);
+        source.playbackRate.value = rateChange ** rate;
+      })
+    })
+
+  // return [source, context];
+}
+
+function stopAudio(source) {
+  clearInterval(inter);
+  source.stop();
+  //source.disconnect(context.destination);
+}
+
+$("input").oninput = () => {
+  currentAudio = $("input").files[0];
+}
+
+function a () {
+  let f = new FileReader();
+  f.readAsArrayBuffer(currentAudio);
+  f.onload = () => {
+    playAudio(f.result);
+$('play').onclick = b;
+    $('play').innerHTML = text[1];
+
+  }
+}
+function b () {
+  stopAudio(source);
+  $('play').onclick = a;
+$('play').innerHTML = text[0];
+}
+$('play').onclick = a;
+
+
+console.log(navigator.language == "zh-CN");
+console.log(~window.location.href.indexOf("zh"));
+if (navigator.language == "zh-CN" && !~window.location.href.indexOf("zh")) {
+  window.location.href = "/zh.html";
+}
+
+if (~window.location.href.indexOf("zh.html")) {
+  text = ["播放", '停止'];
+}</script>
+
+  <!--
+  This script places a badge on your repl's full-browser view back to your repl's cover
+  page. Try various colors for the theme: dark, light, red, orange, yellow, lime, green,
+  teal, blue, blurple, magenta, pink!
+  -->
+  <script src="https://replit.com/public/js/replit-badge-v2.js" theme="light" position="bottom-right"></script>
+</body>
+
+</html>
